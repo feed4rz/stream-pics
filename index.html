@@ -1,0 +1,37 @@
+<img id="pic" src="" style="max-width: 100vw; height: 100vh; margin-left:auto; margin-right: auto; display: block;">
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script>
+	var pic = null;
+	$(document).ready(function() {
+		pic = $('#pic')
+
+		getRnd()
+
+		setInterval(getRnd, 3000)
+	})
+
+function api_call(url, data, callback) {
+  $.ajax({
+    url,
+    data: JSON.stringify(data),
+    cache: false,
+    contentType: 'application/json',
+    type: 'POST',
+    success: function(data) {
+      if(data.success) {
+        callback(null, data.response)
+      } else {
+        callback(data.err, null)
+      }
+    }
+  })
+}
+
+function getRnd() {
+  api_call('/pic/get', {}, function(err, res) {
+  	if(err) return console.log(err)
+
+  	pic.attr('src', res.pic.url)
+  })
+}
+</script>

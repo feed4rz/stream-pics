@@ -1,0 +1,91 @@
+<input id="url" type="text">
+<button id="submit" onclick="submit()">Submit</button>
+<div id="pics" style="margin-top:100px"></div>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script>
+	var input = null;
+	var button = null;
+	var pics = null;
+	var password = null;
+	$(document).ready(function() {
+		input = $('#url')
+		button = $('#submit')
+		pics = $('#pics')
+
+		password = location.href.split('/panel/')[1]
+
+		get()
+	})
+
+function api_call(url, data, callback) {
+  $.ajax({
+    url,
+    data: JSON.stringify(data),
+    cache: false,
+    contentType: 'application/json',
+    type: 'POST',
+    success: function(data) {
+      if(data.success) {
+        callback(null, data.response)
+      } else {
+        callback(data.err, null)
+      }
+    }
+  })
+}
+
+function submit() {
+	var url = input.val()
+
+	input.val('')
+
+	button.text('Submitting...')
+
+  api_call('/pic/add', { url, password }, function(err, res) {
+  	if(err) {
+  		button.text('Error, check console')
+
+  		return console.log(err)
+  	}
+
+  	pics.prepend('<img id="'+res.pic._id+'" src="'+res.pic.url+'" style="height:150px;"> <a id="'+res.pic._id+'_remove" href="remove(\''+res.pic._id+'\')">Remove</a><br><br>')
+
+  	button.text('Submitted!')
+  })
+}
+
+function get() {
+	api_call('/pic/all', { password }, function(err, res) {
+  	if(err) return console.log(err)
+
+  	displayPics(res.pics)
+  })
+}
+
+function displayPics(data) {
+	pics.html('')
+
+	var string = ''
+
+	for(var i = 0; i < data.length; i++) {
+		string += '<img id="'+data[i]._id+'" src="'+data[i].url+'" style="height:150px;"> <a id="'+data[i]._id+'_remove" href="javascript:remove(\''+data[i]._id+'\')">Remove</a><br><br>'
+	}
+
+	pics.html(string)
+}
+
+function remove(_id) {
+	$('#'+_id+'_remove').text('Removing...')
+
+	api_call('/pic/remove', { password, _id }, function(err, res) {
+  	if(err) {
+  		$('#'+_id+'_remove').text('Error, check console')
+  		
+  		return console.log(err)
+  	}
+
+  	$('#'+_id).remove()
+  	$('#'+_id+'_remove').remove()
+  })
+}
+</script>
